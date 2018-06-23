@@ -23,6 +23,7 @@ import org.b3log.latke.servlet.HTTPRequestContext;
 import org.b3log.latke.servlet.HTTPRequestMethod;
 import org.b3log.latke.servlet.annotation.RequestProcessing;
 import org.b3log.latke.servlet.annotation.RequestProcessor;
+import org.b3log.latke.util.Strings;
 import org.b3log.xiaov.service.QQService;
 import org.b3log.xiaov.util.XiaoVs;
 import org.json.JSONObject;
@@ -64,18 +65,20 @@ public class QQProcessor {
      */
     @RequestProcessing(value = "/qq", method = HTTPRequestMethod.POST)
     public void qq(final HTTPRequestContext context, final HttpServletRequest request, final HttpServletResponse response) throws Exception {
-        final String key = XiaoVs.getString("qq.bot.key");
-        if (!key.equals(request.getParameter("key"))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-
-            return;
+        String[] keywords = StringUtils.split(XiaoVs.getString("qq.bot.key"), ",");
+        keywords = Strings.trimAll(keywords);
+        for (final String key : keywords) {
+            if (!key.equals(request.getParameter("key"))) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
         }
+
 
         String msg = request.getParameter("msg");
         if (StringUtils.isBlank(msg)) {
             LOGGER.warn("Empty msg body");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-
             return;
         }
 

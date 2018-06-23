@@ -92,28 +92,12 @@ public class QQService {
      */
     private static int PUSH_GROUP_USER_COUNT = XiaoVs.getInt("qq.bot.pushGroupUserCnt");
 
-    static {
-        String adConf = XiaoVs.getString("ads");
-        if (StringUtils.isNotBlank(adConf)) {
-            final String[] ads = adConf.split("#");
-            ADS.addAll(Arrays.asList(ads));
-        }
-
-        ADS.add(XIAO_V_INTRO);
-        ADS.add(XIAO_V_INTRO);
-        ADS.add(XIAO_V_INTRO);
-    }
 
     /**
      * QQ groups.
      * &lt;groupId, group&gt;
      */
     private final Map<Long, Group> QQ_GROUPS = new ConcurrentHashMap<>();
-    /**
-     * The latest group ad time.
-     * &lt;groupId, time&gt;
-     */
-    private final Map<Long, Long> GROUP_AD_TIME = new ConcurrentHashMap<>();
     /**
      * QQ discusses.
      * &lt;discussId, discuss&gt;
@@ -155,6 +139,8 @@ public class QQService {
      */
     @Inject
     private ItpkQueryService itpkQueryService;
+    @Inject
+    private WkyQueryService wkyQueryService;
 
     /**
      * Initializes QQ client.
@@ -193,7 +179,7 @@ public class QQService {
                     try {
                         Thread.sleep(500 + RandomUtils.nextInt(1000));
 
-                        onQQGroupMessage(message);
+//                        onQQGroupMessage(message);
                     } catch (final Exception e) {
                         LOGGER.log(Level.ERROR, "XiaoV on group message error", e);
                     }
@@ -206,7 +192,7 @@ public class QQService {
                     try {
                         Thread.sleep(500 + RandomUtils.nextInt(1000));
 
-                        onQQDiscussMessage(message);
+//                        onQQDiscussMessage(message);
                     } catch (final Exception e) {
                         LOGGER.log(Level.ERROR, "XiaoV on group message error", e);
                     }
@@ -411,22 +397,6 @@ public class QQService {
         if (StringUtils.isBlank(msg)) {
             return;
         }
-
-        if (RandomUtils.nextFloat() >= 0.9) {
-            Long latestAdTime = GROUP_AD_TIME.get(groupId);
-            if (null == latestAdTime) {
-                latestAdTime = 0L;
-            }
-
-            final long now = System.currentTimeMillis();
-
-            if (now - latestAdTime > 1000 * 60 * 30) {
-                msg = msg + "。\n" + ADS.get(RandomUtils.nextInt(ADS.size()));
-
-                GROUP_AD_TIME.put(groupId, now);
-            }
-        }
-
         sendMessageToGroup(groupId, msg);
     }
 
@@ -564,6 +534,8 @@ public class QQService {
                     ret += "白话释义: " + parseMsg.getString("baihua");
                     ret = ret.replace("null", "无");
                 }
+            } else if (4 == QQ_BOT_TYPE) {
+                ret = wkyQueryService.chat(msg);
             }
 
             if (StringUtils.isBlank(ret)) {
@@ -579,14 +551,12 @@ public class QQService {
     private void reloadGroups() {
         final List<Group> groups = xiaoV.getGroupList();
         QQ_GROUPS.clear();
-        GROUP_AD_TIME.clear();
         UNPUSH_GROUPS.clear();
 
         final StringBuilder msgBuilder = new StringBuilder();
         msgBuilder.append("Reloaded groups: \n");
         for (final Group g : groups) {
             QQ_GROUPS.put(g.getId(), g);
-            GROUP_AD_TIME.put(g.getId(), 0L);
             UNPUSH_GROUPS.add(g.getId());
 
             msgBuilder.append("    ").append(g.getName()).append(": ").append(g.getId()).append("\n");
