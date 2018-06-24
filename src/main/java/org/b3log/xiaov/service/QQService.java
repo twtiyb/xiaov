@@ -179,7 +179,7 @@ public class QQService {
                     try {
                         Thread.sleep(500 + RandomUtils.nextInt(1000));
 
-//                        onQQGroupMessage(message);
+``                        onQQGroupMessage(message);
                     } catch (final Exception e) {
                         LOGGER.log(Level.ERROR, "XiaoV on group message error", e);
                     }
@@ -192,7 +192,7 @@ public class QQService {
                     try {
                         Thread.sleep(500 + RandomUtils.nextInt(1000));
 
-//                        onQQDiscussMessage(message);
+                        onQQDiscussMessage(message);
                     } catch (final Exception e) {
                         LOGGER.log(Level.ERROR, "XiaoV on group message error", e);
                     }
